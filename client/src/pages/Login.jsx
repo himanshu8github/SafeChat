@@ -1,13 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "../utils/axios"; 
+import useAuthStore from "../store/useAuthStore";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate();
 
-  const handleLogin = () => {
+  const navigate = useNavigate();
+  const { login } = useAuthStore(); 
+
+  const handleLogin = async () => {
     if (!email || !password) {
       setError("Please fill in all fields.");
       return;
@@ -23,17 +27,30 @@ export default function Login() {
       return;
     }
 
-    setError("");
-    console.log("Logging in...", { email, password });
+    try {
+      const res = await axios.post("/api/auth/login", { email, password });
 
-    navigate("/chat");
+      const userData = res.data.user;
+      const token = res.data.token;
+
+   
+      localStorage.setItem("token", token);
+
+   
+      login(userData);
+
+      navigate("/chat");
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed.");
+      console.error("Login error:", err);
+    }
   };
 
   return (
     <div className="max-w-md mx-auto mt-10 bg-white dark:bg-gray-900 p-6 rounded shadow">
       <h2 className="text-2xl font-bold mb-4 text-center text-indigo-600">Login</h2>
       {error && <p className="text-red-500 mb-2">{error}</p>}
-      
+
       <input
         type="email"
         value={email}

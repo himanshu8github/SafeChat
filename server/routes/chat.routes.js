@@ -5,8 +5,6 @@ const router = express.Router();
 
 
 router.post('/send', sendMessage);
-
-
 router.get('/history', getMessages);
 
 

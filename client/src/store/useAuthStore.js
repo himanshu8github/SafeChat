@@ -1,15 +1,20 @@
 import { create } from "zustand";
-import socket from '../utils/socket';
+import socket from "../utils/socket";
 
 const useAuthStore = create((set) => ({
-  isLoggedIn: false,
-  login: () => set({ isLoggedIn: true }),
-  logout: () => set({ isLoggedIn: false }),
+  user: JSON.parse(localStorage.getItem("user")) || null,
+  isLoggedIn: !!localStorage.getItem("user"),
+
+  login: (userData) => {
+    localStorage.setItem("user", JSON.stringify(userData));
+    socket.emit("user-join", userData._id);
+    set({ user: userData, isLoggedIn: true });
+  },
+
+  logout: () => {
+    localStorage.removeItem("user");
+    set({ user: null, isLoggedIn: false });
+  },
 }));
-
-
-export const useLogin = async (user) => {
-  socket.emit('user-join', user.id); 
-};
 
 export default useAuthStore;
